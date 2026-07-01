@@ -17,7 +17,7 @@ A web app that takes plain-language input from an engineer or inventor and uses 
 
 ```bash
 git clone https://github.com/IanCooper12/Invention-Disclosure-Assistant
-cd Patent_Project
+cd Invention-Disclosure-Assistant
 ```
 
 ### 2. Set up the backend
