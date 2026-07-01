@@ -1,0 +1,389 @@
+/* ── Design tokens ────────────────────────────────────────── */
+:root {
+  --bg:            #F8F7F4;   /* warm off-white */
+  --text:          #1A1A2E;   /* dark charcoal */
+  --text-muted:    #6B7280;   /* secondary text */
+  --text-dim:      #9CA3AF;   /* hints, optional tags */
+  --accent:        #2D6BE4;   /* professional blue */
+  --accent-hover:  #2259c7;   /* slightly darker on hover */
+  --accent-ring:   rgba(45, 107, 228, 0.18);
+  --input-bg:      #ffffff;
+  --input-border:  #DDE1E7;
+  --divider:       #E5E7EB;
+  --card:          #ffffff;
+  --card-shadow:   0 2px 12px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.05);
+  --error-bg:      #FEF2F2;
+  --error-border:  #FECACA;
+  --error-text:    #991B1B;
+}
+
+/* ── Reset & base ─────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    'Helvetica Neue', Arial, sans-serif;
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--text);
+  background: var(--bg);
+  min-height: 100vh;
+}
+
+/* ── Page wrapper ─────────────────────────────────────────── */
+.app {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 64px 28px 88px;
+}
+
+/* ── Header ───────────────────────────────────────────────── */
+.app-header {
+  margin-bottom: 56px;
+  padding-left: 18px;
+  border-left: 3px solid var(--accent);
+}
+
+.header-eyebrow {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 8px;
+}
+
+.app-header h1 {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  line-height: 1.25;
+  margin-bottom: 10px;
+}
+
+.app-header p {
+  font-size: 14px;
+  color: var(--text-muted);
+  max-width: 520px;
+  line-height: 1.65;
+}
+
+/* ── Form ─────────────────────────────────────────────────── */
+.disclosure-form {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.form-field label {
+  display: block;
+  font-weight: 600;
+  font-size: 13.5px;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.form-field label .optional-tag {
+  font-weight: 400;
+  font-size: 11.5px;
+  color: var(--text-dim);
+  margin-left: 6px;
+  letter-spacing: 0;
+}
+
+.field-hint {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  margin-bottom: 9px;
+  line-height: 1.5;
+}
+
+.form-field input,
+.form-field textarea {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1.5px solid var(--input-border);
+  border-radius: 7px;
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--text);
+  background: var(--input-bg);
+  transition: border-color 0.15s, box-shadow 0.15s;
+  resize: vertical;
+  line-height: 1.6;
+}
+
+.form-field input:focus,
+.form-field textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-ring);
+}
+
+.form-field input::placeholder,
+.form-field textarea::placeholder {
+  color: var(--text-dim);
+}
+
+/* ── Submit button ────────────────────────────────────────── */
+.submit-btn {
+  align-self: flex-start;
+  padding: 13px 32px;
+  background: var(--accent);
+  color: #ffffff;
+  border: none;
+  border-radius: 7px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  letter-spacing: 0.01em;
+  transition: background 0.15s, box-shadow 0.15s;
+}
+
+.submit-btn:hover:not(:disabled) {
+  background: var(--accent-hover);
+  box-shadow: 0 0 0 3px var(--accent-ring);
+}
+
+.submit-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 600px) {
+  .submit-btn {
+    align-self: stretch;
+    width: 100%;
+  }
+}
+
+/* ── Error banner ─────────────────────────────────────────── */
+.error-banner {
+  margin-top: 20px;
+  padding: 14px 16px;
+  border: 1px solid var(--error-border);
+  border-radius: 7px;
+  background: var(--error-bg);
+  color: var(--error-text);
+  font-size: 13.5px;
+  line-height: 1.55;
+}
+
+.error-banner strong {
+  display: block;
+  margin-bottom: 3px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* ── Output card ──────────────────────────────────────────── */
+.draft-output {
+  margin-top: 60px;
+  background: var(--card);
+  border-radius: 10px;
+  box-shadow: var(--card-shadow);
+  border: 1px solid var(--divider);
+  overflow: hidden;
+}
+
+.draft-output-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 18px 28px;
+  border-bottom: 1px solid var(--divider);
+  background: #FAFAFA;
+}
+
+.draft-output-header h2 {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+}
+
+.draft-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.action-btn {
+  padding: 7px 14px;
+  font-size: 12.5px;
+  font-weight: 500;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.action-btn-outline {
+  background: #ffffff;
+  color: var(--text);
+  border: 1px solid var(--input-border);
+}
+
+.action-btn-outline:hover {
+  background: #F3F4F6;
+}
+
+.action-btn-solid {
+  background: var(--accent);
+  color: #ffffff;
+  border: 1px solid var(--accent);
+}
+
+.action-btn-solid:hover {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
+
+.copy-btn-success {
+  background: #F0FDF4 !important;
+  color: #166534 !important;
+  border-color: #BBF7D0 !important;
+}
+
+/* ── Draft sections ───────────────────────────────────────── */
+.draft-sections {
+  padding: 32px 28px 36px;
+}
+
+.draft-section {
+  margin-bottom: 30px;
+}
+
+.draft-section:last-child {
+  margin-bottom: 0;
+}
+
+.draft-section-header {
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--accent);
+  border-bottom: 1.5px solid #EEF3FD;
+  padding-bottom: 7px;
+  margin-bottom: 13px;
+}
+
+.draft-section-content p {
+  margin-bottom: 10px;
+  font-size: 14px;
+  color: var(--text);
+  line-height: 1.75;
+}
+
+.draft-section-content p:last-child {
+  margin-bottom: 0;
+}
+
+.draft-section-content ul,
+.draft-section-content ol {
+  margin: 8px 0 8px 20px;
+}
+
+.draft-section-content li {
+  font-size: 14px;
+  color: var(--text);
+  margin-bottom: 5px;
+  line-height: 1.65;
+  text-transform: none;
+}
+
+/* In-content subheadings (from ### markdown inside a section) */
+.draft-section-content .content-subheading {
+  font-weight: 600;
+  font-size: 13.5px;
+  color: #374151;
+  margin-top: 16px;
+  margin-bottom: 6px;
+  text-transform: none;
+}
+
+/* Fallback raw text */
+.draft-raw {
+  padding: 32px 28px;
+  font-size: 14px;
+  white-space: pre-wrap;
+  color: var(--text);
+  line-height: 1.75;
+}
+
+/* ── Footer disclaimer ────────────────────────────────────── */
+.app-footer {
+  margin-top: 52px;
+  text-align: center;
+}
+
+.app-footer p {
+  font-size: 11.5px;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+
+/* ── Print / Save as PDF ──────────────────────────────────── */
+@media print {
+  body { background: #fff; font-size: 10.5pt; color: #111; }
+
+  .app { max-width: 100%; padding: 0; }
+
+  .app-header { border-left: 2pt solid #2D6BE4; padding-left: 12pt; margin-bottom: 24pt; }
+  .header-eyebrow { color: #2D6BE4; }
+  .app-header h1 { font-size: 15pt; color: #111; }
+
+  .app-header p,
+  .disclosure-form,
+  .error-banner,
+  .submit-btn,
+  .draft-actions,
+  .app-footer { display: none !important; }
+
+  .draft-output {
+    margin-top: 0;
+    box-shadow: none;
+    border: none;
+    border-radius: 0;
+  }
+
+  .draft-output-header {
+    background: #fff;
+    border-bottom: 0.5pt solid #ccc;
+    padding: 0 0 8pt;
+  }
+
+  .draft-output-header h2 { color: #555; font-size: 8pt; }
+
+  .draft-sections { padding: 14pt 0 0; }
+
+  .draft-section { margin-bottom: 14pt; page-break-inside: avoid; }
+
+  .draft-section-header {
+    color: #2D6BE4;
+    border-bottom: 0.5pt solid #C7D9F8;
+    font-size: 8pt;
+    padding-bottom: 4pt;
+    margin-bottom: 7pt;
+  }
+
+  .draft-section-content p { font-size: 10pt; color: #111; margin-bottom: 5pt; }
+  .draft-section-content li { font-size: 10pt; color: #111; text-transform: none; }
+  .draft-section-content ol,
+  .draft-section-content ul { margin: 5pt 0 5pt 18pt; }
+  .draft-section-content .content-subheading {
+    font-weight: 600;
+    font-size: 10pt;
+    color: #111;
+    margin-top: 10pt;
+    margin-bottom: 4pt;
+    text-transform: none;
+  }
+}
