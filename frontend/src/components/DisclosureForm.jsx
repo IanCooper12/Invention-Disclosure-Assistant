@@ -1,5 +1,6 @@
 import { useState } from 'react'
 
+// All six form fields with labels, hints, and validation rules
 const FIELDS = [
   {
     name: 'title',
@@ -50,17 +51,21 @@ const FIELDS = [
   },
 ]
 
+// Build initial empty form state from field definitions
 const initialState = Object.fromEntries(FIELDS.map((f) => [f.name, '']))
 
 function DisclosureForm({ onSubmit, loading }) {
+  // Track form values and inline validation error
   const [form, setForm] = useState(initialState)
   const [validationError, setValidationError] = useState(null)
 
+  // Update a single field and clear any validation error
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value })
     if (validationError) setValidationError(null)
   }
 
+  // Check required fields before passing data to the parent
   const handleSubmit = (e) => {
     e.preventDefault()
     const missing = FIELDS.filter((f) => f.required && !form[f.name].trim())
@@ -76,6 +81,7 @@ function DisclosureForm({ onSubmit, loading }) {
 
   return (
     <form className="disclosure-form" onSubmit={handleSubmit} noValidate>
+      {/* Render each field dynamically from the FIELDS array */}
       {FIELDS.map((field) => (
         <div className="form-field" key={field.name}>
           <label htmlFor={field.name}>
@@ -102,6 +108,7 @@ function DisclosureForm({ onSubmit, loading }) {
         </div>
       ))}
 
+      {/* Show validation error if required fields are empty */}
       {validationError && (
         <div className="error-banner" role="alert">
           <strong>Required fields missing</strong>

@@ -1,21 +1,16 @@
 import { useState } from 'react'
 
-// ---------------------------------------------------------------------------
-// parseSections
-// Splits Claude's response into the top-level numbered sections (1–7).
-//
-// Guard against false positives: a numbered line is only treated as a
-// section header when it is preceded by a blank line (or the start of text).
-// This prevents numbered list items inside section content from consuming a
-// section slot (e.g. "6. Step six" inside section 5 must NOT become Section 6).
-// ---------------------------------------------------------------------------
+// Split Claude's response into the top-level numbered sections (1-7)
+// Only treats a line as a section header if it follows a blank line,
+// which prevents numbered list items inside section content from being
+// mistaken for section headers
 function parseSections(text) {
   const lines = text.split('\n')
   const sections = []
   let currentHeader = null
   let currentLines = []
   let lastSectionNum = 0
-  let prevWasBlank = true // start of text counts as blank
+  let prevWasBlank = true // treat start of text as blank
 
   for (const line of lines) {
     const trimmed = line.trim()
@@ -26,14 +21,15 @@ function parseSections(text) {
       continue
     }
 
-    // Only attempt a section-header match when preceded by a blank line.
-    // Accepts: "1. Title", "**1. Title**", "## 1. Title"
+    // Check for a section header only when preceded by a blank line
+    // Accepts formats: "1. Title", "**1. Title**", "## 1. Title"
     if (prevWasBlank) {
       const match = trimmed.match(
         /^(?:\*{1,2}|#{1,3}\s*)?(\d+)\.\s+(.+?)(?:\*{1,2})?:?\s*$/
       )
       if (match) {
         const num = parseInt(match[1], 10)
+        // Require sequential numbering to avoid false positives
         if (num >= 1 && num <= 7 && num === lastSectionNum + 1) {
           if (currentHeader !== null) {
             sections.push({ header: currentHeader, lines: currentLines })
@@ -54,32 +50,25 @@ function parseSections(text) {
     prevWasBlank = false
   }
 
+  // Save the last section
   if (currentHeader !== null) {
     sections.push({ header: currentHeader, lines: currentLines })
   }
 
+  // Fall back to raw display if fewer than 3 sections were found
   return sections.length >= 3 ? sections : null
 }
 
-// ---------------------------------------------------------------------------
-// renderContent
-// Renders the content lines of a single section into React elements.
-// Handles, in priority order:
-//   1. Blank lines             → skip
-//   2. Horizontal rules        → skip  (--- / *** / ___)
-//   3. Markdown headings       → <p class="content-subheading">  (### Foo)
-//   4. Decimal sub-sections    → <p class="content-subheading">  (5.1 Foo)
-//   5. Numbered list items     → <ol><li>  (1. Foo)
-//   6. Bullet list items       → <ul><li>  (- Foo)
-//   7. Everything else         → <p>
-// ---------------------------------------------------------------------------
+// Render the content lines of a single section into React elements
+// Handles markdown headings, decimal sub-sections, numbered lists,
+// bullet lists, horizontal rules, and plain paragraphs
 function renderContent(lines) {
   const allLines = lines.join('\n').split('\n')
   const result = []
   let i = 0
   let key = 0
 
-  // Helper: peek past blank lines and return index of next non-blank, or -1
+  // Return the index of the next non-blank line, or -1 if none
   const nextNonBlank = (from) => {
     let j = from
     while (j < allLines.length && !allLines[j].trim()) j++
@@ -89,13 +78,13 @@ function renderContent(lines) {
   while (i < allLines.length) {
     const trimmed = allLines[i].trim()
 
-    // 1. blank line
+    // Skip blank lines
     if (!trimmed) { i++; continue }
 
-    // 2. horizontal rule  (--- / *** / ___ / -- etc.)
+    // Skip horizontal rules (--- / *** / __)
     if (/^[-*_]{2,}\s*$/.test(trimmed)) { i++; continue }
 
-    // 3. markdown heading  (# / ## / ### ...)
+    // Markdown heading (### Foo) — strip # symbols and render as sub-heading
     const mdHeading = trimmed.match(/^#{1,6}\s+(.+)$/)
     if (mdHeading) {
       result.push(
@@ -107,9 +96,7 @@ function renderContent(lines) {
       continue
     }
 
-    // 4. decimal sub-section  (5.1 Title, **5.1 Title**, 5.2 Title …)
-    //    Strip any leading/trailing asterisks before matching so Claude's bold
-    //    markers (**5.1 Foo**) don't cause the line to fall through to a plain <p>.
+    // Decimal sub-section (5.1 Title, **5.1 Title**) — strip asterisks and render as sub-heading
     const decimalSub = trimmed.replace(/^\*+/, '').replace(/\*+$/, '')
       .match(/^(\d+\.\d+(?:\.\d+)?)\s+([A-Z].*)$/)
     if (decimalSub) {
@@ -122,9 +109,9 @@ function renderContent(lines) {
       continue
     }
 
-    // 5. numbered list item  (1. Foo)
-    //    Note: "5.1 Foo" does NOT match because after \d+\. the next char is
-    //    a digit, not whitespace — so decimal sub-sections can't steal this branch.
+    // Numbered list (1. Foo) — collect consecutive items into an <ol>
+    // Note: "5.1 Foo" does not match because \s follows the first period,
+    // not a digit, so decimal sub-sections cannot trigger this branch
     if (/^\d+\.\s+\S/.test(trimmed)) {
       const items = []
       while (i < allLines.length) {
@@ -133,7 +120,7 @@ function renderContent(lines) {
           items.push(t.replace(/^\d+\.\s+/, ''))
           i++
         } else if (!t) {
-          // continue across a single blank line if next non-blank is also numbered
+          // Continue the list across a single blank line if the next non-blank line is also a numbered item
           const j = nextNonBlank(i + 1)
           if (j !== -1 && /^\d+\.\s+\S/.test(allLines[j].trim())) {
             i = j
@@ -152,7 +139,7 @@ function renderContent(lines) {
       continue
     }
 
-    // 6. bullet list item  (- Foo / • Foo / * Foo)
+    // Bullet list (- Foo / * Foo / • Foo) — collect consecutive items into a <ul>
     if (/^[-•*]\s+\S/.test(trimmed)) {
       const items = []
       while (i < allLines.length) {
@@ -179,17 +166,17 @@ function renderContent(lines) {
       continue
     }
 
-    // 7. regular prose paragraph — collect until blank line or special line
+    // Plain prose paragraph — collect lines until a blank line or special line type
     const paraLines = []
     while (i < allLines.length) {
       const t = allLines[i].trim()
       if (!t) { i++; break }
       if (
-        /^[-*_]{2,}\s*$/.test(t) ||          // horizontal rule
-        /^#{1,6}\s/.test(t) ||               // markdown heading
-        /^\d+\.\d+\s+[A-Z]/.test(t) ||      // decimal sub-section
-        /^\d+\.\s+\S/.test(t) ||             // numbered list
-        /^[-•*]\s+\S/.test(t)                // bullet
+        /^[-*_]{2,}\s*$/.test(t) ||
+        /^#{1,6}\s/.test(t) ||
+        /^\d+\.\d+\s+[A-Z]/.test(t) ||
+        /^\d+\.\s+\S/.test(t) ||
+        /^[-•*]\s+\S/.test(t)
       ) break
       paraLines.push(t)
       i++
@@ -202,20 +189,20 @@ function renderContent(lines) {
   return result.length > 0 ? result : null
 }
 
-// ---------------------------------------------------------------------------
-// DraftOutput component
-// ---------------------------------------------------------------------------
 function DraftOutput({ draft }) {
   const [copied, setCopied] = useState(false)
 
+  // Parse the raw draft text into sections
   const sections = parseSections(draft)
 
+  // Copy the raw draft text to the clipboard
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(draft)
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     } catch {
+      // Fallback for browsers that block navigator.clipboard
       const el = document.createElement('textarea')
       el.value = draft
       document.body.appendChild(el)
@@ -229,6 +216,7 @@ function DraftOutput({ draft }) {
 
   return (
     <div className="draft-output">
+      {/* Header bar with title and action buttons */}
       <div className="draft-output-header">
         <h2>Disclosure Draft</h2>
         <div className="draft-actions">
@@ -238,12 +226,14 @@ function DraftOutput({ draft }) {
           >
             {copied ? 'Copied!' : 'Copy to Clipboard'}
           </button>
+          {/* Save as PDF uses the browser's native print-to-PDF dialog */}
           <button className="action-btn action-btn-solid" onClick={() => window.print()}>
             Save as PDF
           </button>
         </div>
       </div>
 
+      {/* Render parsed sections, or fall back to raw text if parsing failed */}
       {sections ? (
         <div className="draft-sections">
           {sections.map((section, i) => (

@@ -4,10 +4,12 @@ import DisclosureForm from './components/DisclosureForm'
 import DraftOutput from './components/DraftOutput'
 
 function App() {
+  // Track the generated draft, loading state, and any error message
   const [draft, setDraft] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
+  // Send form data to the backend and store the returned draft
   const handleSubmit = async (formData) => {
     setLoading(true)
     setError(null)
@@ -25,6 +27,7 @@ function App() {
       const data = await res.json()
       setDraft(data.draft)
     } catch (err) {
+      // Show a specific message if the backend is unreachable
       if (err.message.includes('fetch') || err.message.includes('Failed')) {
         setError('Could not reach the server. Make sure the backend is running on port 8000.')
       } else {
@@ -37,6 +40,7 @@ function App() {
 
   return (
     <div className="app">
+      {/* Page header with eyebrow label and description */}
       <header className="app-header">
         <p className="header-eyebrow">Patent Drafting Tool</p>
         <h1>Invention Disclosure Assistant</h1>
@@ -46,8 +50,10 @@ function App() {
         </p>
       </header>
 
+      {/* Invention input form */}
       <DisclosureForm onSubmit={handleSubmit} loading={loading} />
 
+      {/* Show error banner if the API call failed */}
       {error && (
         <div className="error-banner" role="alert">
           <strong>Something went wrong</strong>
@@ -55,8 +61,10 @@ function App() {
         </div>
       )}
 
+      {/* Show the formatted draft once it's ready */}
       {draft && <DraftOutput draft={draft} />}
 
+      {/* Legal disclaimer */}
       <footer className="app-footer">
         <p>This tool is a drafting aid only. It does not constitute legal advice.</p>
       </footer>

@@ -5,10 +5,12 @@ from pydantic import BaseModel
 from dotenv import load_dotenv
 import anthropic
 
+# Load API key from .env file
 load_dotenv()
 
 app = FastAPI()
 
+# Allow requests from the React frontend dev server
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173", "http://localhost:5174"],
@@ -16,6 +18,8 @@ app.add_middleware(
     allow_headers=["Content-Type"],
 )
 
+# System prompt sent with every Claude API call
+# Defines the output structure and instructs Claude not to give legal advice
 SYSTEM_PROMPT = (
     "You are assisting a non-lawyer engineer or inventor in drafting a formal "
     "invention disclosure document for review by a patent agent or attorney. Take "
@@ -49,6 +53,7 @@ SYSTEM_PROMPT = (
 )
 
 
+# Form fields sent from the frontend
 class DisclosureRequest(BaseModel):
     title: str
     problem: str
@@ -60,12 +65,14 @@ class DisclosureRequest(BaseModel):
 
 @app.post("/generate-disclosure")
 async def generate_disclosure(req: DisclosureRequest):
+    # Reject the request if the API key is not set
     api_key = os.environ.get("ANTHROPIC_API_KEY")
     if not api_key:
         raise HTTPException(status_code=500, detail="ANTHROPIC_API_KEY not configured")
 
     client = anthropic.Anthropic(api_key=api_key)
 
+    # Build the user message from the submitted form fields
     user_message = f"""Please draft an invention disclosure based on the following information provided by the inventor:
 
 Title / Working Name: {req.title}
@@ -85,6 +92,7 @@ Known Prior Art or Similar Existing Solutions:
 Who Would Use This and In What Context:
 {req.who_uses_it if req.who_uses_it else "Not provided."}"""
 
+    # Send to Claude and return the generated draft
     message = client.messages.create(
         model="claude-sonnet-4-6",
         max_tokens=4096,
